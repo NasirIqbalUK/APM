@@ -58,7 +58,7 @@ export function reducer(state = initialState, action: ProductActions): ProductSt
                 currentProduct: null
             };
 
-        case ProductActionTypes.SetCurrentProduct:
+        case ProductActionTypes.InitializeCurrentProduct:
             return {
                 ...state,
                 currentProduct: {
