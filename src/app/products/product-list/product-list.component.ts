@@ -7,6 +7,8 @@ import { ProductService } from '../product.service';
 import { Store, select } from '@ngrx/store';
 import * as fromProduct from '../state/product.reducer';
 import * as productActions from '../state/product.actions';
+import { takeWhile } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'pm-product-list',
@@ -14,6 +16,7 @@ import * as productActions from '../state/product.actions';
   styleUrls: ['./product-list.component.css'],
 })
 export class ProductListComponent implements OnInit, OnDestroy {
+  componentActive = true;
   pageTitle = 'Products';
   errorMessage: string;
 
@@ -23,6 +26,8 @@ export class ProductListComponent implements OnInit, OnDestroy {
 
   // Used to highlight the selected product in the list
   selectedProduct: Product | null;
+  products$: Observable<Product[]>;
+  errorMessage$: Observable<string>;
   // sub: Subscription;
 
   constructor(
@@ -40,10 +45,18 @@ export class ProductListComponent implements OnInit, OnDestroy {
       currentProduct => this.selectedProduct = currentProduct
     );
 
-    this.productService.getProducts().subscribe({
-      next: (products: Product[]) => (this.products = products),
-      error: (err: any) => (this.errorMessage = err.error),
-    });
+    // this.productService.getProducts().subscribe({
+    //   next: (products: Product[]) => (this.products = products),
+    //   error: (err: any) => (this.errorMessage = err.error),
+    // });
+    this.errorMessage$ = this.store.pipe(select(fromProduct.getError));
+    this.store.dispatch(new productActions.Load());
+
+    // this.store.pipe(select(fromProduct.getProducts),
+    //                 takeWhile(() => this.componentActive))
+    //   .subscribe((products: Product[]) => this.products = products);
+
+    this.products$ = this.store.pipe(select(fromProduct.getProducts));
 
     // TODO: Unsubscribe
     this.store
@@ -53,6 +66,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     // this.sub.unsubscribe();
+    this.componentActive = false;
   }
 
   checkChanged(value: boolean): void {
